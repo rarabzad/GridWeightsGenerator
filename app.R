@@ -160,7 +160,7 @@ server <- function(input, output, session) {
     dir.create(unzip_dir)
     unzip(input$shpfile$datapath, exdir = unzip_dir)
     
-    shp_files <- list.files(unzip_dir, pattern = "\\.shp$", full.names = TRUE)
+    shp_files <- list.files(unzip_dir, pattern = "\\.shp$", full.names = TRUE, recursive = TRUE)
     if (length(shp_files) == 0) {
       log_text("❌ Error: No .shp file found in the ZIP archive.")
       return()
