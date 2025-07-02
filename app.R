@@ -42,6 +42,7 @@ initial_log <- install_log
 
 ui <- fluidPage(
   useShinyjs(),
+  tags$img(src = "logo.png", width = "100px", style = "border-radius: 20px;"),
   titlePanel("Grid Weights Generator"),
   sidebarLayout(
     sidebarPanel(
