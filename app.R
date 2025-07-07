@@ -42,8 +42,11 @@ initial_log <- install_log
 
 ui <- fluidPage(
   useShinyjs(),
-  tags$img(src = "logo.png", width = "100px", style = "border-radius: 20px;"),
-  titlePanel("Grid Weights Generator"),
+  tags$div(
+    style = "display: flex; align-items: center; gap: 15px; margin-bottom: 20px;",
+    tags$img(src = "logo.png", width = "100px", style = "border-radius: 20px;"),
+    tags$h2("Grid Weights Generator", style = "margin: 0;")
+  ),
   sidebarLayout(
     sidebarPanel(
       fileInput("ncfile", "Upload NetCDF File (.nc)", accept = ".nc"),
