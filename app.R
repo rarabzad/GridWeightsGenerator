@@ -42,23 +42,111 @@ initial_log <- install_log
 
 ui <- fluidPage(
   useShinyjs(),
-  tags$div(
+  tags$head(
+    tags$script(HTML('
+    $(function() {
+      // initialize all popovers on page load
+      $("[data-toggle=\\"popover\\"]").popover();
+      // re‑init popovers after dynamic UI outputs render
+      $(document).on("shiny:value", function(evt) {
+        if (["var_select","dim_select","hru_select"].includes(evt.name)) {
+          setTimeout(function() {
+            $("[data-toggle=\\"popover\\"]").popover({ trigger: "hover" });
+          }, 50);
+        }
+      });
+    });
+  '))
+  ),  tags$div(
     style = "display: flex; align-items: center; gap: 15px; margin-bottom: 20px;",
     tags$img(src = "logo.png", width = "100px", style = "border-radius: 20px;"),
     tags$h2("Grid Weights Generator", style = "margin: 0;")
   ),
   sidebarLayout(
     sidebarPanel(
-      fileInput("ncfile", "Upload NetCDF File (.nc)", accept = ".nc"),
-      fileInput("shpfile", "Upload HRU Shapefile (.zip)", accept = ".zip"),
-      uiOutput("var_select"),
-      uiOutput("dim_select"),
-      uiOutput("hru_select"),
-      checkboxInput("show_map", "Show Map", value = TRUE),
-      actionButton("generate", "Generate Weights", icon = icon("play")),
+      fileInput("ncfile",
+                label = tagList(
+                  "Upload NetCDF File (.nc)",
+                  tags$span(
+                    icon("question-circle"),
+                    style = "color: #007bff; cursor: pointer;",
+                    `data-toggle` = "popover",
+                    `data-trigger` = "hover",
+                    `data-placement` = "right",
+                    `data-content` = "Upload a NetCDF file (.nc) that contains spatial grid data with 2D or 1D lon/lat variables."
+                  )
+                ),
+                accept = ".nc"
+      ),
+      fileInput("shpfile",
+                label = tagList(
+                  "Upload HRU Shapefile (.zip)",
+                  tags$span(
+                    icon("question-circle"),
+                    style = "color: #007bff; cursor: pointer;",
+                    `data-toggle` = "popover",
+                    `data-trigger` = "hover",
+                    `data-placement` = "right",
+                    `data-content` = "Upload a zipped shapefile containing polygon features (must include .shp, .shx, .dbf, .prj at minimum)."
+                  )
+                ),
+                accept = ".zip"
+      ),
+      uiOutput("var_select"),  # Popover added inside server render
+      uiOutput("dim_select"),  # Popover added inside server render
+      uiOutput("hru_select"),  # Popover added inside server render
+      checkboxInput("show_map",
+                    label = tagList(
+                      "Show Map",
+                      tags$span(
+                        icon("question-circle"),
+                        style = "color: #007bff; cursor: pointer;",
+                        `data-toggle` = "popover",
+                        `data-trigger` = "hover",
+                        `data-placement` = "right",
+                        `data-content` = "Enable to preview an interactive Leaflet map of HRUs, grid cells, and centroids."
+                      )
+                    ),
+                    value = TRUE
+      ),
+      actionButton("generate",
+                   label = tagList(
+                     "Generate Weights",
+                     tags$span(
+                       icon("question-circle"),
+                       style = "color: #007bff; cursor: pointer;",
+                       `data-toggle` = "popover",
+                       `data-trigger` = "hover",
+                       `data-placement` = "right",
+                       `data-content` = "Start the intersection and weight calculation process between the NetCDF grid and HRU polygons."
+                     )
+                   ),
+                   icon = icon("play")
+      ),
       div(id = "waiting_msg", style = "color: blue; font-style: italic; margin-top: 10px;"),
       br(),
-      downloadButton("download_zip", "Download Results")
+      downloadButton("download_zip",
+                     label = tagList(
+                       "Download Results",
+                       tags$span(
+                         icon("question-circle"),
+                         style = "color: #007bff; cursor: pointer;",
+                         `data-toggle` = "popover",
+                         `data-trigger` = "hover",
+                         `data-placement` = "right",
+                         `data-content` = "Download a ZIP file containing all outputs: shapefiles, weights table, GeoJSON, and optional plot."
+                       )
+                     )
+      ),
+      
+      br(), br(),
+      tags$p(
+        "For more information and sample data ",
+        tags$a(href = "https://github.com/rarabzad/GridWeightsGenerator/tree/main",
+               "click here", target = "_blank")
+      )
+      
+      
     ),
     mainPanel(
       fluidRow(
@@ -124,33 +212,53 @@ server <- function(input, output, session) {
     output$var_select <- renderUI({
       req(nc_data())
       vars <- names(nc_data()$var)
-      
       selected_vars <- input$varnames
-      # Make sure selected_vars are in vars and unique
       selected_vars <- selected_vars[selected_vars %in% vars]
-      # Put selected_vars first, then rest
       ordered_vars <- c(selected_vars, setdiff(vars, selected_vars))
       
-      selectizeInput("varnames", "Select Variable Names (lon, lat)", 
+      selectizeInput("varnames",
+                     label = tagList(
+                       "Select Variable Names (lon, lat)",
+                       tags$span(
+                         icon("question-circle"),
+                         style = "color: #007bff; cursor: pointer;",
+                         `data-toggle` = "popover",
+                         `data-trigger` = "hover",
+                         `data-placement` = "right",
+                         `data-content` = "Select two variable names representing longitude and latitude from the NetCDF file."
+                       )
+                     ),
                      choices = ordered_vars,
                      selected = selected_vars,
                      multiple = TRUE,
-                     options = list(maxItems = 2))
+                     options = list(maxItems = 2)
+      )
     })
     
     output$dim_select <- renderUI({
       req(nc_data())
       dims <- names(nc_data()$dim)
-      
       selected_dims <- input$dimnames
       selected_dims <- selected_dims[selected_dims %in% dims]
       ordered_dims <- c(selected_dims, setdiff(dims, selected_dims))
       
-      selectizeInput("dimnames", "Select Dimension Names (rlat, rlon)", 
+      selectizeInput("dimnames",
+                     label = tagList(
+                       "Select Dimension Names (rlat, rlon)",
+                       tags$span(
+                         icon("question-circle"),
+                         style = "color: #007bff; cursor: pointer;",
+                         `data-toggle` = "popover",
+                         `data-trigger` = "hover",
+                         `data-placement` = "right",
+                         `data-content` = "Select two dimensions used in the NetCDF grid (e.g., rlat and rlon)."
+                       )
+                     ),
                      choices = ordered_dims,
                      selected = selected_dims,
                      multiple = TRUE,
-                     options = list(maxItems = 2))
+                     options = list(maxItems = 2)
+      )
     })
     update_log("✅ NetCDF file loaded.")
   })
@@ -183,7 +291,21 @@ server <- function(input, output, session) {
     # populate HRU_ID select input dynamically
     output$hru_select <- renderUI({
       req(shp_data())
-      selectInput("hru_id", "Select HRU ID Field", choices = names(shp_data()), selected = names(shp_data())[1])
+      selectInput("hru_id",
+                  label = tagList(
+                    "Select HRU ID Field",
+                    tags$span(
+                      icon("question-circle"),
+                      style = "color: #007bff; cursor: pointer;",
+                      `data-toggle` = "popover",
+                      `data-trigger` = "hover",
+                      `data-placement` = "right",
+                      `data-content` = "Choose the shapefile field to use as a unique identifier for HRUs (e.g., HRU_ID)."
+                    )
+                  ),
+                  choices = names(shp_data()),
+                  selected = names(shp_data())[1]
+      )
     })
     if (!is.null(shp_data())) {
       log_text(sprintf("✅ Shapefile loaded with %d features.", nrow(shp_data())))
