@@ -141,6 +141,6 @@ If you're having issues or want to suggest improvements:
 
 
 ## Links
+* [Live Demo](https://raven-gridweightsgenerator.share.connect.posit.cloud)
 * [Open an Issue](https://github.com/rarabzad/GridWeightsGenerator/issues)
-* 🔗 [Live Demo](https://raven-gridweightsgenerator.share.connect.posit.cloud)
 * [grid weight generator function](https://github.com/rarabzad/GridWeightsGenerator/blob/main/grids_weights_generator.R)
