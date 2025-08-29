@@ -94,7 +94,8 @@ grids_weights_generator <- function(ncfile, hrufile,
   
   if (!all(dim(lonc) == dim(latc))) stop("Centroid matrices lonc/latc dimensions mismatch")
   nr <- nrow(latc); ncg <- ncol(latc)
-  
+  lonc<-ifelse(lonc>180,lonc-360,lonc)
+
   #-- 3) Detect regular grid -----------------------------------------------------
   lon1d <- sort(unique(as.vector(lonc)))
   lat1d <- sort(unique(as.vector(latc)))
@@ -236,3 +237,4 @@ grids_weights_generator <- function(ncfile, hrufile,
     plot_path   = plot_fn
   ))
 }
+
