@@ -218,8 +218,9 @@ grids_weights_generator <- function(ncfile, hrufile,
   return(list(
     grid_sf     = grid_sf,
     hru_sf      = inter_sf,
-    centroids   = cent_sf,
+    cent_sf   = cent_sf,
     weights_txt = weights_txt,
     plot_path   = plot_fn
   ))
 }
+
