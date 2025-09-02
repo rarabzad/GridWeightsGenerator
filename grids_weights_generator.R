@@ -1,21 +1,9 @@
-#' Generate grid-to-HRU intersection weights for regular or irregular grids
-#'
-#' @param ncfile   path to NetCDF file
-#' @param hrufile  path to HRU shapefile (directory or .shp)
-#' @param varnames character vector length-2 of NetCDF variable names (lon, lat), optional
-#' @param dimnames character vector length-2 of NetCDF dimension names, optional
-#' @param HRU_ID   name of the HRU ID field in the shapefile
-#' @param plot     logical, whether to return a plotting function
-#' @return         list(grid=sf, intersection=sf, centroids=sf, weights_txt=character, plot=function)
-#' @import        sf ncdf4 geosphere dplyr sp
-#' @export
-
-
 grids_weights_generator <- function(ncfile, hrufile,
                                     varnames = NULL,
                                     dimnames = NULL,
                                     HRU_ID   = "HRU_ID",
-                                    plot      = TRUE) {
+                                    plot      = TRUE)
+{
   #-- 1) Dependencies and file checks -------------------------------------------
   required <- c('ncdf4','sf','geosphere','dplyr','sp','lwgeom','rmapshaper')
   miss     <- required[!sapply(required, requireNamespace, quietly=TRUE)]
@@ -93,9 +81,11 @@ grids_weights_generator <- function(ncfile, hrufile,
   }
   
   if (!all(dim(lonc) == dim(latc))) stop("Centroid matrices lonc/latc dimensions mismatch")
+  latc<-t(latc)
+  lonc<-t(lonc)
   nr <- nrow(latc); ncg <- ncol(latc)
   lonc<-ifelse(lonc>180,lonc-360,lonc)
-
+  
   #-- 3) Detect regular grid -----------------------------------------------------
   lon1d <- sort(unique(as.vector(lonc)))
   lat1d <- sort(unique(as.vector(latc)))
@@ -183,18 +173,14 @@ grids_weights_generator <- function(ncfile, hrufile,
     rows[idx]    <- i; cols[idx] <- j; idx <- idx + 1
   }
   cent_sf <- sf::st_as_sf(
-    data.frame(x = as.vector(lonc), y = as.vector(latc)),
+    data.frame(x = as.vector(lonc), y = as.vector(latc),Cell_ID=0:(prod(dim(lonc))-1)),
     coords = c('x','y'), crs = 4326
   )
   grid_sf <- sf::st_sf(
-    Cell_ID  = ids,       # 1-based ID
     geometry = sf::st_sfc(polys),
     crs      = 4326
   )
-  grid_sf<-grid_sf[unlist(st_contains(grid_sf,cent_sf)),]
-  grid_sf$Cell_ID<-0:(nrow(grid_sf)-1)
-  cent_sf$Cell_ID<-0:(nrow(cent_sf)-1)
-  
+  grid_sf$Cell_ID<-cent_sf[unlist(st_contains(grid_sf,cent_sf)),]$Cell_ID
   
   #-- 6) Intersection with HRUs & weight calculation -----------------------------
   sf::sf_use_s2(FALSE)
@@ -237,4 +223,3 @@ grids_weights_generator <- function(ncfile, hrufile,
     plot_path   = plot_fn
   ))
 }
-
