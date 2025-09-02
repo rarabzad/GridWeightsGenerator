@@ -5,7 +5,7 @@ grids_weights_generator <- function(ncfile, hrufile,
                                     plot      = TRUE)
 {
   #-- 1) Dependencies and file checks -------------------------------------------
-  required <- c('ncdf4','sf','geosphere','dplyr','sp','lwgeom','rmapshaper')
+  required <- c('ncdf4','sf','geosphere','dplyr','sp','lwgeom','rmapshaper','raster')
   miss     <- required[!sapply(required, requireNamespace, quietly=TRUE)]
   if (length(miss)) stop('Install missing packages: ', paste(miss, collapse=', '))
   if (!file.exists(ncfile))  stop('NetCDF not found: ', ncfile)
@@ -223,4 +223,5 @@ grids_weights_generator <- function(ncfile, hrufile,
     plot_path   = plot_fn
   ))
 }
+
 
