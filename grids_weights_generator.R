@@ -206,15 +206,14 @@ grids_weights_generator <- function(ncfile, hrufile,
   if (plot) {
     plot_fn <- function(filename = "map.pdf") {
       pdf(filename, width = 8, height = 8)
-      plot(as_Spatial(grid_sf), col = 'lightgrey', main = "Overlay Map")
-      plot(as_Spatial(cent_sf), add = TRUE, col = 'red', pch = 19, cex = 0.5)
-      plot(as_Spatial(rmapshaper::ms_simplify(hru_sf, keep = 0.05, keep_shapes = TRUE)),
-           add = TRUE, border = 'blue')
+      plot(grid_sf$geometry, col = 'lightgrey', main = "Overlay Map", reset = FALSE)
+      plot(cent_sf$geometry, add = TRUE, col = 'red', pch = 19, cex = 0.5)
+      simplified_hru <- rmapshaper::ms_simplify(hru_sf, keep = 0.05, keep_shapes = TRUE)
+      plot(simplified_hru$geometry, add = TRUE, border = 'blue')
       dev.off()
       normalizePath(filename)
     }
-  }
-  
+  }  
   return(list(
     grid_sf     = grid_sf,
     hru_sf      = inter_sf,
@@ -223,5 +222,3 @@ grids_weights_generator <- function(ncfile, hrufile,
     plot_path   = plot_fn
   ))
 }
-
-
