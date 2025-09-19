@@ -336,15 +336,32 @@ server <- function(input, output, session) {
         )
         incProgress(0.4, detail = "Generating leaflet map and writing shapefiles...")
         result_data(res)
-        
         output$map <- renderLeaflet({
           req(input$show_map)
           req(result_data())
-          leaflet() %>%
+          centroids <- res$cent_sf
+          if (!is.null(centroids) && !inherits(centroids, "sf") && all(c("lon","lat") %in% names(centroids))) {
+            centroids <- sf::st_as_sf(centroids, coords = c("lon","lat"), crs = sf::st_crs(res$hru_sf))
+          }
+          map <- leaflet() %>%
             addTiles() %>%
-            addPolygons(data = res$grid_sf, color = "black", weight = 2, fillOpacity = 0.3) %>%
-            addPolygons(data = res$hru_sf, color = "red", weight = 0.5, fillOpacity = 0.3) %>%
-            addCircleMarkers(data = res$centroids, color = "blue", radius = 2)
+            addPolygons(
+              data = res$grid_sf,
+              color = "black",
+              weight = 2,
+              fillOpacity = 0.3,
+              label = ~paste0("Cell ID: ", Cell_ID),
+              labelOptions = labelOptions(
+                style = list("font-weight" = "bold"),
+                direction = "auto"
+              )
+            ) %>%
+            addPolygons(data = res$hru_sf, color = "red", weight = 0.5, fillOpacity = 0.3)
+          if (!is.null(centroids) && inherits(centroids, "sf") &&
+              any(sf::st_geometry_type(centroids) %in% c("POINT","MULTIPOINT"))) {
+            map <- map %>% addCircleMarkers(data = centroids, color = "blue", radius = 2)
+          }
+          map
         })
         
         # Write outputs
@@ -363,7 +380,7 @@ server <- function(input, output, session) {
         incProgress(0.05)
         
         sf::st_write(res$hru_sf,  hru_cells_shp_path,  delete_layer = TRUE, quiet = TRUE)
-        sf::st_write(res$centroids, centroids_shp_path, delete_layer = TRUE, quiet = TRUE)
+        sf::st_write(res$cent_sf, centroids_shp_path, delete_layer = TRUE, quiet = TRUE)
         log_text(paste("✅ Centroids shapefile written at:", centroids_shp_path))
         incProgress(0.1)
         
