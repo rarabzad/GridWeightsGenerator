@@ -187,10 +187,13 @@ grids_weights_generator <- function(ncfile, hrufile,
   hru_sf <- sf::st_read(hrufile, quiet = TRUE)[, HRU_ID, drop = FALSE] %>% 
           st_make_valid() %>% 
           sf::st_transform(sf::st_crs(grid_sf))
-  inter_sf <- sf::st_intersection(grid_sf, hru_sf %>% mutate(HRU_ID = hru_sf[[HRU_ID]])) %>%
-    group_by(HRU_ID) %>%
-    mutate(weight = as.numeric(sf::st_area(geometry) / sum(sf::st_area(geometry), na.rm=TRUE))) %>%
-    ungroup()
+  inter_sf <- sf::st_intersection(
+                                    grid_sf,
+                                    hru_sf %>% mutate(HRU_ID = .data[[HRU_ID]])
+                                  ) %>%
+                                    group_by(HRU_ID) %>%
+                                    mutate(weight = as.numeric(sf::st_area(geometry) / sum(sf::st_area(geometry), na.rm = TRUE))) %>%
+                                    ungroup()
   
   #-- 7) Prepare outputs ---------------------------------------------------------
   wt <- inter_sf %>% sf::st_set_geometry(NULL) %>% dplyr::select(HRU_ID, Cell_ID, weight)
@@ -224,5 +227,3 @@ grids_weights_generator <- function(ncfile, hrufile,
     plot_path   = plot_fn
   ))
 }
-
-
