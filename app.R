@@ -37,7 +37,7 @@ library(rmapshaper)
 
 setwd(if (!is.null(sys.frame(1)$ofile)) dirname(sys.frame(1)$ofile) else ".")
 source("https://raw.githubusercontent.com/rarabzad/GridWeightsGenerator/refs/heads/main/grids_weights_generator.R")
-options(shiny.maxRequestSize = 100 * 1024^2)  # 100 MB
+options(shiny.maxRequestSize = 500 * 1024^2)  # 100 MB
 initial_log <- install_log
 
 ui <- fluidPage(
@@ -449,3 +449,4 @@ server <- function(input, output, session) {
 }
 
 shinyApp(ui = ui, server = server)
+
